@@ -9,8 +9,8 @@ import random
 
 
 def dbConnect():
-    client = pymongo.MongoClient(
-        'mongodb://HotDog:HotDog@cluster0-shard-00-02.9q7j7.mongodb.net:27017/dogs?retryWrites=true&w=majority')
+    client = pymongo.MongoClient("mongodb://HotDog:HotDog@cluster0-shard-00-00.9q7j7.mongodb.net:27017,cluster0-shard-00-01.9q7j7.mongodb.net:27017,cluster0-shard-00-02.9q7j7.mongodb.net:27017/dogs?ssl=true&replicaSet=atlas-7anlxw-shard-0&authSource=admin&retryWrites=true&w=majority")
+
     db_hotDog = client.dogs
     return db_hotDog
 
@@ -22,16 +22,16 @@ def dogTempHourly(db_hotDog, dogId):
     temp_avg = getDogPulseInfo(db_hotDog, dogId,dt_now)
     doc = {
         "date_created": dt_now,
-        'dog_id': int(dogId),
+        'dog_id': dogId,
         'temp_hourly_avg': temp_avg,
     }
 
-    # db_hotDog.dog_dist_every_minute.insert_one(doc)
+    db_hotDog.dog_temp_hourly.insert_one(doc)
 
 def getDogTempInfo(db_hotDog, dogId, dt_now):
     temp=0
     dt_before_hour = (datetime.now()).replace(hour=dt_now.hour-1, minute=0, second=0, microsecond=0)
-    dogAgg = db_hotDog.basic_tag_feeding_y2.aggregate([
+    dogAgg = db_hotDog.dog_temp_every_minute.aggregate([
         {'$match': {
                     'dog_id': dogId,
                     'date_created': {'$gte': dt_now, '$lt': dt_before_hour},
@@ -57,16 +57,16 @@ def dogDistHourly(db_hotDog, dogId):
     walking_min = getDogDistInfo(db_hotDog, dogId,dt_now)
     doc = {
         "date_created": dt_now,
-        'dog_id': int(dogId),
+        'dog_id': dogId,
         'walking_min': walking_min/60,
     }
 
-    # db_hotDog.dog_dist_every_minute.insert_one(doc)
+    db_hotDog.dog_dist_hourly.insert_one(doc)
 
 def getDogDistInfo(db_hotDog, dogId, dt_now):
     distMet=0
     dt_before_hour = (datetime.now()).replace(hour=dt_now.hour-1, minute=0, second=0, microsecond=0)
-    dogAgg = db_hotDog.basic_tag_feeding_y2.aggregate([
+    dogAgg = db_hotDog.dog_dist_every_minute.aggregate([
         {'$match': {
                     'dog_id': dogId,
                     'date_created': {'$gte': dt_now, '$lt': dt_before_hour},
@@ -93,16 +93,16 @@ def dogPulseHourly(db_hotDog, dogId):
     pulse_avg = getDogPulseInfo(db_hotDog, dogId,dt_now)
     doc = {
         "date_created": dt_now,
-        'dog_id': int(dogId),
+        'dog_id': dogId,
         'pulse_hourly_avg': pulse_avg,
     }
 
-    # db_hotDog.dog_dist_every_minute.insert_one(doc)
+    db_hotDog.dog_pulse_hourly.insert_one(doc)
 
 def getDogPulseInfo(db_hotDog, dogId, dt_now):
     pulse=0
     dt_before_hour = (datetime.now()).replace(hour=dt_now.hour-1, minute=0, second=0, microsecond=0)
-    dogAgg = db_hotDog.basic_tag_feeding_y2.aggregate([
+    dogAgg = db_hotDog.dog_pulse_every_minute.aggregate([
         {'$match': {
                     'dog_id': dogId,
                     'date_created': {'$gte': dt_now, '$lt': dt_before_hour},
@@ -127,22 +127,20 @@ def getDogPulseInfo(db_hotDog, dogId, dt_now):
 
 def main():
     print("main")
-    # db_hotDog = dbConnect()
-
-
-if __name__ == "__main__":
     db_hotDog = dbConnect()
-    main()
-    # dogs = db_hotDog.dogs_info.distinct("_id")
+    dogs = db_hotDog.dogs_info.distinct("_id")
     while True:
         now = DT.datetime.now()
 
         if now.minute == 0:
-            # for dog in dogs:
-            dogDistHourly(db_hotDog, 8)
-            dogPulseHourly(db_hotDog, 8)
-            dogTempHourly(db_hotDog, 8)
-            time.sleep(3500)
+            for dog in dogs:
+                dogDistHourly(db_hotDog, dog)
+                dogPulseHourly(db_hotDog, dog)
+                dogTempHourly(db_hotDog, dog)
+            time.sleep(3600)
 
+
+if __name__ == "__main__":
+    main()
 
 

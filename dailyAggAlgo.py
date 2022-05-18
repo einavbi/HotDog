@@ -9,8 +9,8 @@ import random
 
 
 def dbConnect():
-    client = pymongo.MongoClient(
-        'mongodb://HotDog:HotDog@cluster0-shard-00-02.9q7j7.mongodb.net:27017/dogs?retryWrites=true&w=majority')
+    client = pymongo.MongoClient("mongodb://HotDog:HotDog@cluster0-shard-00-00.9q7j7.mongodb.net:27017,cluster0-shard-00-01.9q7j7.mongodb.net:27017,cluster0-shard-00-02.9q7j7.mongodb.net:27017/dogs?ssl=true&replicaSet=atlas-7anlxw-shard-0&authSource=admin&retryWrites=true&w=majority")
+
     db_hotDog = client.dogs
     return db_hotDog
 
