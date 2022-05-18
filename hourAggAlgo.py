@@ -30,11 +30,11 @@ def dogTempHourly(db_hotDog, dogId):
 
 def getDogTempInfo(db_hotDog, dogId, dt_now):
     temp=0
-    dt_before_hour = (datetime.now()).replace(hour=dt_now.hour-1, minute=0, second=0, microsecond=0)
+    dt_before_hour = (datetime.now()+ timedelta(hours=-1)).replace( minute=0, second=0, microsecond=0)
     dogAgg = db_hotDog.dog_temp_every_minute.aggregate([
         {'$match': {
                     'dog_id': dogId,
-                    'date_created': {'$gte': dt_now, '$lt': dt_before_hour},
+                    'date_created': {'$gte': dt_before_hour, '$lte': dt_now},
                     }},
         {'$group':
             {'_id': {
@@ -54,22 +54,22 @@ def getDogTempInfo(db_hotDog, dogId, dt_now):
 
 def dogDistHourly(db_hotDog, dogId):
     dt_now = DT.datetime.now().replace(minute=0, second=0, microsecond=0)
-    walking_min = getDogDistInfo(db_hotDog, dogId,dt_now)
+    walking_met = getDogDistInfo(db_hotDog, dogId,dt_now)
     doc = {
         "date_created": dt_now,
         'dog_id': dogId,
-        'walking_min': walking_min/60,
+        'walking_met': walking_met,
     }
 
     db_hotDog.dog_dist_hourly.insert_one(doc)
 
 def getDogDistInfo(db_hotDog, dogId, dt_now):
     distMet=0
-    dt_before_hour = (datetime.now()).replace(hour=dt_now.hour-1, minute=0, second=0, microsecond=0)
+    dt_before_hour = (datetime.now()+ timedelta(hours=-1)).replace( minute=0, second=0, microsecond=0)
     dogAgg = db_hotDog.dog_dist_every_minute.aggregate([
         {'$match': {
                     'dog_id': dogId,
-                    'date_created': {'$gte': dt_now, '$lt': dt_before_hour},
+                    'date_created': {'$gte': dt_before_hour, '$lte': dt_now},
                     'dog_active_status':'active'
                     }},
         {'$group':
@@ -101,11 +101,11 @@ def dogPulseHourly(db_hotDog, dogId):
 
 def getDogPulseInfo(db_hotDog, dogId, dt_now):
     pulse=0
-    dt_before_hour = (datetime.now()).replace(hour=dt_now.hour-1, minute=0, second=0, microsecond=0)
+    dt_before_hour = (datetime.now()+ timedelta(hours=-1)).replace( minute=0, second=0, microsecond=0)
     dogAgg = db_hotDog.dog_pulse_every_minute.aggregate([
         {'$match': {
                     'dog_id': dogId,
-                    'date_created': {'$gte': dt_now, '$lt': dt_before_hour},
+                    'date_created': {'$gte': dt_before_hour, '$lte': dt_now},
                     }},
         {'$group':
             {'_id': {
@@ -142,5 +142,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-

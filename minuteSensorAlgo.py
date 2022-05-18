@@ -34,11 +34,14 @@ def dogTempEveryMinute(db_hotDog, dogId):
     db_hotDog.dog_temp_every_minute.insert_one(doc)
 
 def dogDistEveryMinute(db_hotDog, dogId):
+    dtNow=DT.datetime.now()
     options = ["rest", "active"]
     walking_met = 0
     walking_met_startRange = 0
-    walking_met_endRange = 40
+    walking_met_endRange = 15
     dogStatus=(random.choices(options, weights=[7, 3], k=1))
+    if(dtNow.hour>=23 & dtNow.hour<=6):
+        dogStatus[0] = 'rest'
     if dogStatus[0] == 'active':
         walking_met = round(random.uniform(walking_met_startRange, walking_met_endRange), 2)
     batt_level_startRange=1
@@ -46,7 +49,7 @@ def dogDistEveryMinute(db_hotDog, dogId):
 
 
     doc = {
-        "date_created": DT.datetime.now().replace(second=0, microsecond=0),
+        "date_created": dtNow.replace(second=0, microsecond=0),
         'dog_active_status' : dogStatus[0],
         'dog_id' : dogId,
         'walking_met' :walking_met,
@@ -117,4 +120,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    # dogs = db_hotDog.dogs_info.distinct("_id")
